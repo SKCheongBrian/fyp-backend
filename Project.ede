@@ -1,0 +1,10 @@
+;; Object FYP Backend
+;; EDE Project Files are auto generated: Do Not Edit
+(ede-proj-project "FYP Backend"
+  :file "Project.ede"
+  :name "FYP Backend"
+  :targets nil
+  :configurations '("debug" "release")
+  :object-name "FYP Backend"
+  :makefile-type Makefile
+  :configuration-variables '("debug" (("DEBUG" . "1"))))
