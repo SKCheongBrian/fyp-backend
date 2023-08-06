@@ -53,6 +53,7 @@ export class Compiler {
   // assume that only one declaration
   #translateVarDecl(node) {
     const fragment = node.fragments[0];
+    // TODO do a check for this.
     this.#translate(fragment.initializer);
     // ! This maybe wrong... need to check with prof.
     // this.agenda[this.index++] = { kind: "DECL_VAR", identifier: fragment.name.identifier }
