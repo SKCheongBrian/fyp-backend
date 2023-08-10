@@ -25,7 +25,7 @@ function handleCompilationUnit(types) {
   }
 }
 
-function handleType(AST) {
+function handleType(node) {
   const len = node.bodyDeclarations.length;
   const bodyDecl = node.bodyDeclarations;
 
