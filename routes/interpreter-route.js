@@ -1,7 +1,7 @@
 import express from "express";
 import { Compiler } from "../interpreter/compiler.js";
 import { Interpreter } from "../interpreter/interpreter.js";
-import generate_pass1 from "../interpreter/transforms/pass_01_generateSimpleAST.js";
+import generate_pass1 from "../interpreter/transforms/pass-01-generateSimpleAST.js";
 
 const router = express.Router();
 const compiler = new Compiler();
