@@ -17,7 +17,7 @@ function process(AST) {
       handleMethodDeclaration(AST);
       return AST;
     default:
-      console.log("This node is unkown", AST.node);
+      console.log("(Pass1::process) This node is unknown:", AST.node);
       return AST;
   }
 }

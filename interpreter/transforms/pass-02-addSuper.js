@@ -1,4 +1,5 @@
 import NodeType from "../util/ast-types.js";
+import SuperBuilder from "../util/super-builder.js";
 
 function addSuper(AST) {
   return process(AST);
@@ -12,8 +13,11 @@ function process(AST) {
     case NodeType.TypeDeclaration:
       handleType(AST);
       return AST;
+    case NodeType.MethodDeclaration:
+      handleMethodDeclaration(AST);
+      return AST;
     default:
-      console.log("This node is unkown", AST.node);
+      console.log("(Pass2::process) This node is unknown:", AST.node);
       return AST;
   }
 }
@@ -31,17 +35,37 @@ function handleType(node) {
 
   for (let i = 0; i < len; i++) {
     const declaration = bodyDecl[i];
-    if (isSuperMissing(declaration)) {
-      insertSuper(declaration);
+    if (declaration.node == NodeType.MethodDeclaration) {
+      if (isSuperMissing(declaration)) {
+        insertSuper(declaration);
+      } else {
+        process(declaration);
+      }
+    }
+  }
+}
+
+function handleMethodDeclaration(node) {
+  const statements = node.body.statements; // FIXME
+  const len = statements.length;
+  for (let i = 0; i < len; i++) {
+    const statement = statements[i];
+    if (statement.node == NodeType.TypeDeclarationStatement) {
+      process(statement.declaration);
     }
   }
 }
 
 function isSuperMissing(node) {
-  return node.node == NodeType.MethodDeclaration &&
-      node.constructor &&
-      node.body.statements.length > 0 &&
-      node.body.statements[0].node != NodeType.SuperConstructorInvocation
+  return node.constructor &&
+      ((node.body.statements.length > 0 &&
+      node.body.statements[0].node != NodeType.SuperConstructorInvocation) ||
+      node.body.statements.length == 0)
+}
+
+function insertSuper(node) {
+  const superStatement = SuperBuilder.build();
+  node.body.statements.unshift(superStatement);
 }
 
 
