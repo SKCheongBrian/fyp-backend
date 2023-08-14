@@ -16,6 +16,7 @@ const NodeType =  {
   Block: "Block",
   TypeDeclarationStatement: "TypeDeclarationStatement",
   SuperConstructorInvocation: "SuperConstructorInvocation",
+  VariableDecarationStatement: "VariableDeclarationStatement",
 }
 
 export default NodeType;
