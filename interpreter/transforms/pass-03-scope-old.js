@@ -1,24 +1,17 @@
 import NodeType from "../util/ast-types.js";
 import { DummyScope, ClassScope, MethodScope, Field, Variable } from "../util/scope.js";
 
-let dummy;
-let classScopes = {};
 function constructScopes(AST) {
-  let new_mark = true;
-  while (new_mark) {
-    dummy = new DummyScope();
-    console.log("Starting an iteration of while loop");
-    new_mark = false;
-    new_mark = process(AST, dummy);
-    console.log("new_mark:", new_mark);
-  }
+  const dummy = new DummyScope();
+  process(AST, dummy);
   return dummy.getChildren();
 }
 
 function process(node, current) {
   switch (node.node) {
     case NodeType.CompilationUnit:
-      return handleCompilationUnit(node, current);
+      handleCompilationUnit(node.types, current);
+      break;
     case NodeType.TypeDeclaration:
       handleTypeDeclaration(node, current);
       break;
@@ -30,38 +23,15 @@ function process(node, current) {
   }
 }
 
-function getClassScope(name) {
-  if (classScopes.hasOwnProperty(name)) {
-    return classScopes[name];
-  } else {
-    const classScope = new ClassScope(name, null);
-    classScopes[name] = classScope;
-    return classScope;
-  }
-}
-
-function handleCompilationUnit(node, current) {
-  const curr_mark = !(node.hasOwnProperty("mark"));
-  console.log("(handleCompilationUnit) curr_mark:", curr_mark);
-  if (curr_mark) {
-    node["mark"] = true;
-  } else {
-    console.log("(handleCompilationUnit) already marked:", node);
-  }
-  const types = node.types;
+function handleCompilationUnit(types, current) {
   const len = types.length;
-  let new_mark = false;
   for (let i = 0; i < len; i++) {
     const type = types[i];
     const name = type.name.identifier;
-    const classScope = getClassScope(name);
-    const process_mark = process(types[i], classScope);
-    if (process_mark || curr_mark) {
-      new_mark = true;
-    }
+    const classScope = new ClassScope(name, null);
+    process(types[i], classScope);
     current.addChild(classScope);
   }
-  return new_mark;
 }
 
 function addField(current, node) {
@@ -81,81 +51,29 @@ function addField(current, node) {
   current.addField(field);
 }
 
-function hasSuper(node) {
-  return node.superclassType !== null;
-}
-
-function getSuperScope(node, curr) {
-  const superName = node.superclassType.name.identifier;
-
-  if (classScopes.hasOwnProperty(superName)) {
-    return classScopes[superName];
-  }
-  return null;
-}
-
 function handleTypeDeclaration(node, current) {
-  // guard incase node is an interface instead of a class
-  if (node.interface) {
-    return;
-  }
-  if (hasSuper(node)) {
-    const superScope = getSuperScope(node, dummy);
-    if (superScope) {
-      current.addSuperScope(superScope);
-    } else {
-      return false;
-    }
-  }
-
-  let new_mark = false;
   const bodyDeclarations = node.bodyDeclarations;
-  const curr_mark = !(node.hasOwnProperty("mark"));
-  if (curr_mark) {
-    node["mark"] = true;
-    new_mark = true;
-  } else {
-    console.log("(handleTypeDeclaration) already marked:", node);
-  }
   const len = bodyDeclarations.length;
   for (let i = 0; i < len; i++) {
     const declaration = bodyDeclarations[i];
     switch (declaration.node) {
       case NodeType.FieldDeclaration:
-        if (!node.hasOwnProperty("doneChildren")) {
-          addField(current, declaration);
-          // current.addChild(methodScope);
-        }
+        addField(current, declaration);
         break;
       case NodeType.MethodDeclaration:
         const name = declaration.name.identifier;
         const methodScope = new MethodScope(name, current);
-        const process_mark = process(declaration, methodScope);
-        if (process_mark) {
-          new_mark = true;
-        }
+        process(declaration, methodScope);
         console.log("(pass3::handleTypeDeclaration)adding child to:", current.name, methodScope.name);
-        if (!node.hasOwnProperty("doneChildren")) {
-          current.addChild(methodScope);
-        }
+        current.addChild(methodScope);
         break;
       default:
         console.log("(pass3::handleTypeDeclaration) Unknown node:", declaration.node);
     }
   }
-  node["doneChildren"] = true;
-  return new_mark;
 }
 
 function handleMethodDeclaration(node, current) {
-  let new_mark = false;
-  const curr_mark = !(node.hasOwnProperty("mark"));
-  if (curr_mark) {
-    new_mark = true;
-    node["mark"] = true;
-  } else {
-    console.log("(handleMethodDeclaration) already marked:", node);
-  }
   const statements = node.body.statements;
   const len = statements.length;
   for (let i = 0; i < len; i++) {
@@ -170,10 +88,7 @@ function handleMethodDeclaration(node, current) {
         const declaration = statement.declaration
         const className = declaration.name.identifier;
         const classScope = new ClassScope(className, current);
-        const process_mark = process(declaration, classScope);
-        if (process_mark) {
-          new_mark = true;
-        }
+        process(declaration, classScope);
         console.log("(pass3::handleMethodDeclaration)adding child to:", current.name, classScope.name);
         current.addChild(classScope);
         break;
@@ -181,7 +96,6 @@ function handleMethodDeclaration(node, current) {
         console.log("(pass3::handleMethodDeclaration) Unknown node:", statement.node);
     }
   }
-  return new_mark;
 }
 
 export default constructScopes;

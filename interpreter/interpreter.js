@@ -2,20 +2,25 @@ import StackFrame from "./stack/stack-frame.js";
 
 export class Interpreter {
   agenda;
+  labelToIndex;
   operandStack;
   pointer;
   stack;
 
   constructor() {
     this.agenda = [];
+    this.labelToIndex = {};
     this.operandStack = [];
     this.pointer = 0;
     this.stack = [new StackFrame("main")];
   }
 
-  setAgenda(agenda) {
+  init(agenda, labelToIndex) {
     this.agenda = agenda;
+    this.labelToIndex = labelToIndex;
   }
+
+
 
   reset() {
     this.pointer = 0;
@@ -52,9 +57,20 @@ export class Interpreter {
       case "YIELD":
         this.pointer++;
         return this.#yield();
+      case "JUMP_IF_FALSE":
+        return this.#jump_if_false(instruction.label);
       default:
         console.error(instruction.kind + " is unknown");
         break;
+    }
+  }
+
+  #jump_if_false(label) {
+    const pred = this.operandStack.pop();
+    if (pred) {
+      this.pointer++;
+    } else {
+      this.pointer = this.labelToIndex[label];
     }
   }
 
@@ -96,6 +112,22 @@ export class Interpreter {
 
       case "%":
         result = leftOperand % rightOperand;
+        break;
+
+      case ">":
+        result = leftOperand > rightOperand;
+        break;
+
+      case ">=":
+        result = leftOperand >= rightOperand;
+        break;
+
+      case "<":
+        result = leftOperand < rightOperand;
+        break;
+
+      case "<=":
+        result = leftOperand <= rightOperand;
         break;
 
       default:

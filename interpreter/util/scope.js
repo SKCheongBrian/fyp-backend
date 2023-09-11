@@ -3,7 +3,7 @@ class Scope {
   parent;
 
   constructor(parent) {
-    this.children = [];
+    this.children = {};
     this.parent = parent;
   }
 
@@ -12,7 +12,7 @@ class Scope {
   }
 
   addChild(child) {
-    this.children.push(child);
+    this.children[child.name] = child;
   }
 
   getParent() {
@@ -21,16 +21,16 @@ class Scope {
 }
 
 class Field {
-  id;
+  name;
   isStatic;
 
   constructor(id, isStatic) {
-    this.id = id;
+    this.name = id;
     this.isStatic = isStatic;
   }
 
   getId() {
-    return this.id;
+    return this.name;
   }
 
   isStatic() {
@@ -41,6 +41,7 @@ class Field {
 class ClassScope extends Scope {
   name;
   fields;
+  superClass;
   constructor(name, parent) {
     super(parent);
     this.name = name;
@@ -54,18 +55,22 @@ class ClassScope extends Scope {
   addField(field) {
     this.fields.push(field);
   }
+
+  addSuperScope(superClass) {
+    this.superClass = superClass;
+  }
 }
 
 class Variable {
-  id;
+  name;
+
   constructor(id) {
-    this.id = id;
+    this.name = id;
   }
 
   getId() {
-    return this.id;
+    return this.name;
   }
-
 }
 
 class MethodScope extends Scope {

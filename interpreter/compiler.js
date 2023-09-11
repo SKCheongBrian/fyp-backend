@@ -1,13 +1,17 @@
 export class Compiler {
   index = 0;
+  tagCounter = 0;
   agenda = [];
+  labelToIndex = {};
 
   compile(AST) {
     this.index = 0;
+    this.tagCounter = 0;
+    this.labelToIndex = {};
     this.agenda = [];
     this.operandStack = [];
     this.#translate(AST);
-    return this.agenda;
+    return [this.agenda, this.labelToIndex];
   }
 
   #translate(node) {
@@ -27,10 +31,32 @@ export class Compiler {
       case "InfixExpression":
         this.#translateBinaryExpression(node);
         break;
+      case "IfStatement":
+        this.#translateIfStatement(node);
       default:
         console.error("unkown type" + JSON.stringify(node));
         break;
     }
+  }
+
+  #getNewTag() {
+    const tag = this.tagCounter.toString();
+    this.tagCounter++;
+    return tag;
+  }
+
+  #translateIfStatement(node) {
+    const elseLabel = "else" + this.#getNewTag();
+    const endLabel = "end" + this.#getNewTag();
+    this.#translate(node.expression);
+    this.#translate(node.thenStatement);
+    this.agenda[this.index] = { kind: "JUMP_IF_FALSE", label: elseLabel };
+    this.labelToIndex[elseLabel] = this.index++;
+    this.agenda[this.index] = { kind: "JUMP", label: endLabel };
+    this.agenda[this.index++] = { kind: "LABEL", label: elseLabel };
+    this.labelToIndex[endLabel] = this.index++;
+    this.#translate(node.elseStatement);
+    this.agenda[this.index++] = { kind: "LABEL", label: endLabel };
   }
 
   #translateIdentifier(node) {
@@ -46,24 +72,19 @@ export class Compiler {
       this.#translate(statements[i]);
       this.agenda[this.index++] = { kind: "YIELD" };
     }
-    // TODO think about this part again. (whether we want the yield at the end)
-    // this.#translate(statements[statements.length - 1]);
   }
 
   // assume that only one declaration
   #translateVarDecl(node) {
     const fragment = node.fragments[0];
-    // TODO do a check for this.
     this.#translate(fragment.initializer);
-    // ! This maybe wrong... need to check with prof.
-    // this.agenda[this.index++] = { kind: "DECL_VAR", identifier: fragment.name.identifier }
     this.agenda[this.index++] = { kind: "STORE_VAR", identifier: fragment.name.identifier }
   }
 
   #translateBinaryExpression(node) {
     this.#translate(node.rightOperand);
     this.#translate(node.leftOperand);
-    this.agenda[this.index++] = { kind: "BINARY_OP", operator: node.operator}
+    this.agenda[this.index++] = { kind: "BINARY_OP", operator: node.operator }
   }
 }
 

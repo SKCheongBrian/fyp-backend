@@ -1,7 +1,7 @@
 import NodeType from "../util/ast-types.js";
-import ConstructorBuilder from "../util/constructor-builder.js";
+import SuperBuilder from "../util/super-builder.js";
 
-function addConstructors(AST) {
+function addSuper(AST) {
   return process(AST);
 }
 
@@ -17,7 +17,7 @@ function process(AST) {
       handleMethodDeclaration(AST);
       return AST;
     default:
-      console.log("(Pass1::process) This node is unknown:", AST.node);
+      console.log("(Pass2::process) This node is unknown:", AST.node);
       return AST;
   }
 }
@@ -30,31 +30,27 @@ function handleCompilationUnit(types) {
 }
 
 function handleType(node) {
+  // guard incase the type is an interface instead of a class.
+  if (node.interface) {
+    return;
+  }
   const len = node.bodyDeclarations.length;
   const bodyDecl = node.bodyDeclarations;
-
-  let hasConstructor = false;
 
   for (let i = 0; i < len; i++) {
     const declaration = bodyDecl[i];
     if (declaration.node == NodeType.MethodDeclaration) {
-      // check if node is a constructor or normal method
-      if (declaration.constructor) {
-        hasConstructor = true;
+      if (isSuperMissing(declaration)) {
+        insertSuper(declaration);
       } else {
-        // recurse on function to find more types
         process(declaration);
       }
     }
   }
-
-  if (!hasConstructor) {
-    insertConstructor(node);
-  }
 }
 
 function handleMethodDeclaration(node) {
-  const statements = node.body.statements;
+  const statements = node.body.statements; // FIXME
   const len = statements.length;
   for (let i = 0; i < len; i++) {
     const statement = statements[i];
@@ -64,15 +60,17 @@ function handleMethodDeclaration(node) {
   }
 }
 
-function insertConstructor(node) {
-  const nameString = extractNameString(node);
-  const builder = new ConstructorBuilder(nameString);
-
-  node.bodyDeclarations.push(builder.buildConstructor());
+function isSuperMissing(node) {
+  return node.constructor &&
+      ((node.body.statements.length > 0 &&
+      node.body.statements[0].node != NodeType.SuperConstructorInvocation) ||
+      node.body.statements.length == 0)
 }
 
-function extractNameString(node) {
-  return node.name.identifier;
+function insertSuper(node) {
+  const superStatement = SuperBuilder.build();
+  node.body.statements.unshift(superStatement);
 }
 
-export default addConstructors;
+
+export default addSuper;
