@@ -13,10 +13,11 @@ router.post("/", (req, res) => {
   const astWithConstructors = pass1(ast);
   const superAST = pass2(astWithConstructors);
   const scopes = pass3(superAST);
-  // const finalAST = pass4(superAST, scopes);
+  const finalAST = pass4(superAST, scopes);
 
   res.send({
     AST: superAST,
+    finalAST: finalAST,
     scopes: stringify(scopes),
   });
 });

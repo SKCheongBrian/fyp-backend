@@ -45,7 +45,7 @@ class ClassScope extends Scope {
   constructor(name, parent) {
     super(parent);
     this.name = name;
-    this.fields = [];
+    this.fields = {};
   }
 
   getName() {
@@ -53,11 +53,15 @@ class ClassScope extends Scope {
   }
 
   addField(field) {
-    this.fields.push(field);
+    this.fields[field.getId()] = field;
   }
 
   addSuperScope(superClass) {
     this.superClass = superClass;
+  }
+
+  isClassScope() {
+    return true;
   }
 }
 
@@ -79,7 +83,7 @@ class MethodScope extends Scope {
   constructor(name, parent) {
     super(parent);
     this.name = name;
-    this.variables = [];
+    this.variables = {};
   }
 
   getName() {
@@ -87,7 +91,11 @@ class MethodScope extends Scope {
   }
 
   addVariable(variable) {
-    this.variables.push(variable);
+    this.variables[variable.getId()] = variable;
+  }
+
+  isClassScope() {
+    return false;
   }
 }
 
