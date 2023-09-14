@@ -210,7 +210,7 @@ function findDeclaration(name, node) {
       return statement;
     }
   }
-  console.log("ERROR WE COULDN'T FIND IT BOYS");
+  console.log("ERROR: statement not found!");
 }
 
 function makeDeclarationFinal(declaration) {
