@@ -11,6 +11,7 @@ const NodeType =  {
   NumberLiteral: "NumberLiteral",
   ThisExpression: "ThisExpression",
   MethodDeclaration: "MethodDeclaration",
+  MethodInvocation: "MethodInvocation",
   Modifier: "Modifier",
   InfixExpression: "InfixExpression",
   LineEmpty: "LineEmpty",

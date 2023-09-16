@@ -46,6 +46,9 @@ function process(node) {
     case NodeType.ReturnStatement:
       handleReturn(node);
       break;
+    case NodeType.MethodInvocation:
+      handleMethodInvocation(node);
+      break;
   }
 }
 
@@ -242,12 +245,19 @@ function handleExpression(expressionStatement) {
   const expr = expressionStatement.expression;
   if (expr.hasOwnProperty("rightHandSide")) {
     process(expr.rightHandSide);
-  } 
+  }
+  process(expr.expression);
 }
 
 function handleReturn(returnStatement) {
   const expr = returnStatement.expression;
   process(expr);
+}
+
+function handleMethodInvocation(invocation) {
+  for (let arg of invocation.arguments) {
+    process(arg);
+  }
 }
 
 export default addVariableCapture;
