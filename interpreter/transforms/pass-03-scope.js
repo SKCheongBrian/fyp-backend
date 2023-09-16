@@ -156,15 +156,28 @@ function handleMethodDeclaration(node, current) {
   } else {
     console.log("(handleMethodDeclaration) already marked:", node);
   }
+
+  // add parameters into the current scope if any.
+  const parameterList = node.parameters;
+  const parameterListLength = parameterList.length;
+  if (parameterListLength > 0) {
+    for (let i = 0; i < parameterListLength; i++) {
+      const parameter = parameterList[i];
+      const parameterName = parameter.name.identifier;
+      current.addVariable(new Variable(parameterName));
+    }
+  }
+
   const statements = node.body.statements;
   const len = statements.length;
+  // go through statements and add variables, if there is a type
+  // declaration, create a new scope for that type
   for (let i = 0; i < len; i++) {
     const statement = statements[i];
     switch (statement.node) {
       case NodeType.VariableDecarationStatement:
         const variableName = statement.fragments[0].name.identifier;
-        const variable = new Variable(variableName);
-        current.addVariable(variable);
+        current.addVariable(new Variable(variableName));
         break;
       case NodeType.TypeDeclarationStatement:
         const declaration = statement.declaration

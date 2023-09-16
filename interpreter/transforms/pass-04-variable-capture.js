@@ -210,6 +210,12 @@ function findDeclaration(name, node) {
       return statement;
     }
   }
+  // declaration might be in parameters
+  for (let parameter of node.parameters) {
+    if (parameter.name.identifier == name) {
+      return parameter;
+    }
+  }
   console.log("ERROR: statement not found!");
 }
 
@@ -234,7 +240,9 @@ function makeDeclarationFinal(declaration) {
 
 function handleExpression(expressionStatement) {
   const expr = expressionStatement.expression;
-  process(expr.rightHandSide);
+  if (expr.hasOwnProperty("rightHandSide")) {
+    process(expr.rightHandSide);
+  } 
 }
 
 function handleReturn(returnStatement) {
