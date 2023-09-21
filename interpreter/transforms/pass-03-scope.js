@@ -204,7 +204,17 @@ function handleMethodDeclaration(node, current) {
       case NodeType.TypeDeclarationStatement:
         const declaration = statement.declaration
         const className = declaration.name.identifier;
-        const classScope = new ClassScope(className, current);
+        let isStatic = false;
+
+        const len = declaration.modifiers.length;
+        const modifiers = declaration.modifiers;
+        for (let i = 0; i < len; i++) {
+          const modifier = modifiers[i];
+          if (modifier.keyword === "static") {
+            isStatic = true;
+          }
+        }
+        const classScope = new ClassScope(className, current, isStatic);
         const process_mark = process(declaration, classScope);
         if (process_mark) {
           new_mark = true;
