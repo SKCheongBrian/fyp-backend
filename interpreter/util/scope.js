@@ -1,10 +1,12 @@
 class Scope {
   children;
   parent;
+  isStatic;
 
-  constructor(parent) {
+  constructor(parent, isStatic) {
     this.children = {};
     this.parent = parent;
+    this.isStatic = isStatic;
   }
 
   getChildren() {
@@ -101,7 +103,7 @@ class MethodScope extends Scope {
 
 class DummyScope extends Scope {
   constructor() {
-    super(null);
+    super(null, false);
   }
 }
 

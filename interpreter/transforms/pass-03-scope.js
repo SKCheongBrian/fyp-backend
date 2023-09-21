@@ -30,11 +30,11 @@ function process(node, current) {
   }
 }
 
-function getClassScope(name) {
+function getClassScope(name, isStatic) {
   if (classScopes.hasOwnProperty(name)) {
     return classScopes[name];
   } else {
-    const classScope = new ClassScope(name, null);
+    const classScope = new ClassScope(name, null, isStatic);
     classScopes[name] = classScope;
     return classScope;
   }
@@ -54,7 +54,18 @@ function handleCompilationUnit(node, current) {
   for (let i = 0; i < len; i++) {
     const type = types[i];
     const name = type.name.identifier;
-    const classScope = getClassScope(name);
+    let isStatic = false;
+
+    const len = type.modifiers.length;
+    const modifiers = type.modifiers;
+    for (let i = 0; i < len; i++) {
+      const modifier = modifiers[i];
+      if (modifier.keyword === "static") {
+        isStatic = true;
+      }
+    }
+
+    const classScope = getClassScope(name, isStatic);
     const process_mark = process(types[i], classScope);
     if (process_mark || curr_mark) {
       new_mark = true;
@@ -129,7 +140,18 @@ function handleTypeDeclaration(node, current) {
         break;
       case NodeType.MethodDeclaration:
         const name = declaration.name.identifier;
-        const methodScope = new MethodScope(name, current);
+        let isStatic = false;
+
+        const len = declaration.modifiers.length;
+        const modifiers = declaration.modifiers;
+        for (let i = 0; i < len; i++) {
+          const modifier = modifiers[i];
+          if (modifier.keyword === "static") {
+            isStatic = true;
+          }
+        }
+        
+        const methodScope = new MethodScope(name, current, isStatic);
         const process_mark = process(declaration, methodScope);
         if (process_mark) {
           new_mark = true;
