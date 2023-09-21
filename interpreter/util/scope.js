@@ -20,6 +20,10 @@ class Scope {
   getParent() {
     return this.parent;
   }
+
+  isStatic() {
+    return this.isStatic;
+  }
 }
 
 class Field {
@@ -44,8 +48,8 @@ class ClassScope extends Scope {
   name;
   fields;
   superClass;
-  constructor(name, parent) {
-    super(parent);
+  constructor(name, parent, isStatic) {
+    super(parent, isStatic);
     this.name = name;
     this.fields = {};
   }
@@ -82,8 +86,8 @@ class Variable {
 class MethodScope extends Scope {
   name;
   variables;
-  constructor(name, parent) {
-    super(parent);
+  constructor(name, parent, isStatic) {
+    super(parent, isStatic);
     this.name = name;
     this.variables = {};
   }
