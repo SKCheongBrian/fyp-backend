@@ -138,7 +138,7 @@ function handleTypeDeclaration(node, current) {
           // current.addChild(methodScope);
         }
         break;
-      case NodeType.MethodDeclaration:
+      case NodeType.MethodDeclaration: {
         const name = declaration.name.identifier;
         let isStatic = false;
 
@@ -161,6 +161,30 @@ function handleTypeDeclaration(node, current) {
           current.addChild(methodScope);
         }
         break;
+      }
+      case NodeType.TypeDeclaration:{
+        const name = declaration.name.identifier;
+        let isStatic = false;
+
+        const len = declaration.modifiers.length;
+        const modifiers = declaration.modifiers;
+        for (let i = 0; i < len; i++) {
+          const modifier = modifiers[i];
+          if (modifier.keyword === "static") {
+            isStatic = true;
+          }
+        }
+        const classScope = getClassScope(name, isStatic);
+        const process_mark = process(declaration, classScope);
+        if (process_mark) {
+          new_mark = true;
+        }
+        console.log("(pass3::handleTypeDeclaration)adding child to:", current.name, classScope.name);
+        if (!node.hasOwnProperty("doneChildren")) {
+          current.addChild(classScope);
+        }
+        break;
+      }
       default:
         console.log("(pass3::handleTypeDeclaration) Unknown node:", declaration.node);
     }
