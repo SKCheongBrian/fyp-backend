@@ -33,10 +33,16 @@ export class Compiler {
         break;
       case "IfStatement":
         this.#translateIfStatement(node);
+      case "ExpressionStatement":
+        this.#translateExpressionStatement(node);
       default:
         console.error("unkown type" + JSON.stringify(node));
         break;
     }
+  }
+
+  #translateExpressionStatement(node) {
+
   }
 
   #getNewTag() {
@@ -46,17 +52,21 @@ export class Compiler {
   }
 
   #translateIfStatement(node) {
-    const elseLabel = "else" + this.#getNewTag();
+    const alternateLabel = "else" + this.#getNewTag();
     const endLabel = "end" + this.#getNewTag();
     this.#translate(node.expression);
+    this.agenda[this.index++] = { kind: "JUMP_IF_FALSE", label: alternateLabel };
     this.#translate(node.thenStatement);
-    this.agenda[this.index] = { kind: "JUMP_IF_FALSE", label: elseLabel };
-    this.labelToIndex[elseLabel] = this.index++;
-    this.agenda[this.index] = { kind: "JUMP", label: endLabel };
-    this.agenda[this.index++] = { kind: "LABEL", label: elseLabel };
-    this.labelToIndex[endLabel] = this.index++;
-    this.#translate(node.elseStatement);
-    this.agenda[this.index++] = { kind: "LABEL", label: endLabel };
+    this.agenda[this.index++] = { kind: "JUMP", label: endLabel };
+    const alternateIndex = this.index++;
+    this.labelToIndex[alternateLabel] = alternateIndex;
+    this.agenda[alternateIndex] = { kind: "LABEL", label: alternateLabel };
+    if (node.elseStatement !== null) {
+      this.#translate(node.elseStatement);
+    }
+    const endLabelIdx = this.index++;
+    this.labelToIndex[endLabel] = endLabelIdx;
+    this.agenda[endLabelIdx] = { kind: "LABEL", label: endLabel };
   }
 
   #translateIdentifier(node) {
