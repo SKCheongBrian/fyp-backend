@@ -1,5 +1,9 @@
 const NodeType =  {
   CompilationUnit: "CompilationUnit",
+  IfStatement: "IfStatement",
+  ForStatement: "ForStatement",
+  PostfixExpression: "PostfixExpression",
+  PrefixExpression: "PrefixExpression",
   TypeDeclaration: "TypeDeclaration",
   FieldDeclaration: "FieldDeclaration",
   VariableDeclarationFragment: "VariableDeclarationFragment",
@@ -19,7 +23,8 @@ const NodeType =  {
   Block: "Block",
   TypeDeclarationStatement: "TypeDeclarationStatement",
   SuperConstructorInvocation: "SuperConstructorInvocation",
-  VariableDecarationStatement: "VariableDeclarationStatement",
+  VariableDeclarationStatement: "VariableDeclarationStatement",
+  VariableDeclarationExpression: "VariableDeclarationExpression",
 }
 
 export default NodeType;

@@ -1,4 +1,5 @@
 import StackFrame from "./stack/stack-frame.js";
+import InstrType from "./util/instruction-types.js";
 
 export class Interpreter {
   agenda;
@@ -30,8 +31,10 @@ export class Interpreter {
 
   evalStep() {
     while (this.pointer < this.agenda.length) {
-      const instruction = this.agenda[this.pointer];
-      const toVisualiser = this.#executeInstruction(instruction);
+      const instruction = this.agenda[this.pointer][0];
+      const end = this.agenda[this.pointer][1];
+      const nxt = this.agenda[this.pointer][2];
+      const toVisualiser = this.#executeInstruction(instruction, end, nxt);
       console.log("toVisualiser", toVisualiser);
       console.log("pointer", this.pointer);
       console.log("agenda", this.agenda);
@@ -41,36 +44,43 @@ export class Interpreter {
     }
   }
 
-  #executeInstruction(instruction) {
+  #executeInstruction(instruction, end, nxt) {
     switch (instruction.kind) {
-      case "LOAD_VAR":
+      case InstrType.LOAD_VAR:
         return this.#load_var(instruction.identifier);
 
-      case "LOAD_CONST":
+      case InstrType.LOAD_CONST:
         return this.#load_const(instruction.value);
 
-      case "STORE_VAR":
+      case InstrType.STORE_VAR:
         return this.#store_var(instruction.identifier);
 
-      case "BINARY_OP":
+      case InstrType.BINARY_OP:
         return this.#binary_op(instruction.operator);
 
-      case "YIELD":
+      case InstrType.YIELD:
         return this.#yield();
 
-      case "JUMP_IF_FALSE":
+      case InstrType.JIF:
         return this.#jump_if_false(instruction.label);
 
-      case "JUMP":
+      case InstrType.JUMP:
         return this.#jump(instruction.label);
 
-      case "LABEL":
+      case InstrType.LABEL:
         return this.#label();
+
+      case InstrType.UNARY_OP:
+        return this.#unary_op();
         
       default:
         console.error(instruction.kind + " is unknown");
         break;
     }
+  }
+
+  #unary_op() {
+
   }
 
   #label() {
