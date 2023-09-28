@@ -71,7 +71,7 @@ export class Compiler {
 
   // TODO ASK PROF ABOUT THIS
   #translatePostfixExpression(node, end, nxt) {
-    this.#translate(node.operand);
+    this.#translate(node.operand, end, nxt);
     this.agenda[this.index++] = [
       { kind: InstrType.UNARY_OP, operator: node.operator, isPrefix: false },
       end,
@@ -80,7 +80,7 @@ export class Compiler {
   }
 
   #translatePrefixExpression(node, end, nxt) {
-    this.#translate(node.operand);
+    this.#translate(node.operand, end, nxt);
     this.agenda[this.index++] = [
       { kind: InstrType.UNARY_OP, operator: node.operator, isPrefix: true },
       end,
@@ -93,7 +93,7 @@ export class Compiler {
     const nxtLabel = "nxt" + this.#getNewTag();
     const endLabel = "end" + this.#getNewTag();
 
-    this.#translate(node.initializers[0]);
+    this.#translate(node.initializers[0], end, nxt);
 
     const topIndex = this.index++;
     this.labelToIndex[topLabel] = topIndex;
@@ -139,7 +139,7 @@ export class Compiler {
 
   // TODO include += -= etc
   #translateAssignment(node, end, nxt) {
-    this.#translate(node.rightHandSide);
+    this.#translate(node.rightHandSide, end, nxt);
     this.agenda[this.index++] = [
       { kind: InstrType.STORE_VAR, identifier: node.leftHandSide.identifier },
       end,
@@ -148,7 +148,7 @@ export class Compiler {
   }
 
   #translateExpressionStatement(node, end, nxt) {
-    this.#translate(node.expression);
+    this.#translate(node.expression, end, nxt);
   }
 
   #getNewTag() {
@@ -209,7 +209,7 @@ export class Compiler {
 
   #translateBlock(statements, end, nxt) {
     for (let i = 0; i < statements.length; i++) {
-      this.#translate(statements[i]);
+      this.#translate(statements[i], end, nxt);
       this.agenda[this.index++] = [{ kind: InstrType.YIELD }, end, nxt];
     }
   }
@@ -217,7 +217,7 @@ export class Compiler {
   // assume that only one declaration
   #translateVarDecl(node, end, nxt) {
     const fragment = node.fragments[0];
-    this.#translate(fragment.initializer);
+    this.#translate(fragment.initializer, end, nxt);
     this.agenda[this.index++] = [
       { kind: InstrType.STORE_VAR, identifier: fragment.name.identifier },
       end,
@@ -226,8 +226,8 @@ export class Compiler {
   }
 
   #translateBinaryExpression(node, end, nxt) {
-    this.#translate(node.rightOperand);
-    this.#translate(node.leftOperand);
+    this.#translate(node.rightOperand, end, nxt);
+    this.#translate(node.leftOperand, end, nxt);
     this.agenda[this.index++] = [
       { kind: InstrType.BINARY_OP, operator: node.operator },
       end,

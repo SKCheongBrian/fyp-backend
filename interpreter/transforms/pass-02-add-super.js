@@ -50,7 +50,7 @@ function handleType(node) {
 }
 
 function handleMethodDeclaration(node) {
-  const statements = node.body.statements; // FIXME
+  const statements = node.body.statements; 
   const len = statements.length;
   for (let i = 0; i < len; i++) {
     const statement = statements[i];
@@ -60,7 +60,8 @@ function handleMethodDeclaration(node) {
   }
 }
 
-function isSuperMissing(node) {
+function isSuperMissing(node) { // TODO check that super first one or there are no supers at all.
+  // super is not first one throw exception
   return node.constructor &&
       ((node.body.statements.length > 0 &&
       node.body.statements[0].node != NodeType.SuperConstructorInvocation) ||
