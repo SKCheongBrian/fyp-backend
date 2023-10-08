@@ -24,9 +24,8 @@ router.post("/", (req, res) => {
 });
 
 router.get("/step", (req, res) => {
-
   const env = interpreter.evalStep();
-  // console.log(env);
+  console.log(env);
   res.send(env);
 });
 

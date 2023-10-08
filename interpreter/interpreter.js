@@ -31,15 +31,21 @@ export class Interpreter {
 
   evalStep() {
     while (this.pointer < this.agenda.length) {
-      const instruction = this.agenda[this.pointer][0];
-      const end = this.agenda[this.pointer][1];
-      const nxt = this.agenda[this.pointer][2];
-      const toVisualiser = this.#executeInstruction(instruction, end, nxt);
-      console.log("toVisualiser", toVisualiser);
-      console.log("pointer", this.pointer);
-      console.log("agenda", this.agenda);
-      if (instruction.kind === "YIELD") {
-        return toVisualiser;
+      try {
+        const instruction = this.agenda[this.pointer][0];
+        const end = this.agenda[this.pointer][1];
+        const nxt = this.agenda[this.pointer][2];
+        const toVisualiser = this.#executeInstruction(instruction, end, nxt);
+        console.log("toVisualiser", toVisualiser);
+        console.log("pointer", this.pointer);
+        console.log("agenda", this.agenda);
+        if (instruction.kind === "YIELD") {
+          return toVisualiser;
+        }
+      } catch (e) {
+        // console.log(e.message);
+        this.reset();
+        return { Error: e.message };
       }
     }
   }

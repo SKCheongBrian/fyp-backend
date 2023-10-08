@@ -11,7 +11,7 @@ class StackFrame {
     if (this.frame.hasOwnProperty(symbol)) {
       return this.frame[symbol]
     }
-    return null;
+    throw new Error("Symbol " + symbol + " not found");
   }
 
   setVariable(symbol, newValue) {
