@@ -1,5 +1,11 @@
 import NodeType from "../util/ast-types.js";
-import { DummyScope, ClassScope, MethodScope, Field, Variable } from "../util/scope.js";
+import {
+  DummyScope,
+  ClassScope,
+  MethodScope,
+  Field,
+  Variable,
+} from "../util/scope.js";
 
 let dummy;
 let classScopes = {};
@@ -12,7 +18,7 @@ function constructScopes(AST) {
     new_mark = process(AST, dummy);
     console.log("new_mark:", new_mark);
   }
-  return dummy.getChildren();
+  return dummy;
 }
 
 function process(node, current) {
@@ -41,7 +47,7 @@ function getClassScope(name, isStatic) {
 }
 
 function handleCompilationUnit(node, current) {
-  const curr_mark = !(node.hasOwnProperty("mark"));
+  const curr_mark = !node.hasOwnProperty("mark");
   console.log("(handleCompilationUnit) curr_mark:", curr_mark);
   if (curr_mark) {
     node["mark"] = true;
@@ -96,7 +102,7 @@ function hasSuper(node) {
   return node.superclassType !== null;
 }
 
-function getSuperScope(node, curr) {
+function getSuperScope(node) {
   const superName = node.superclassType.name.identifier;
 
   if (classScopes.hasOwnProperty(superName)) {
@@ -111,7 +117,7 @@ function handleTypeDeclaration(node, current) {
     return;
   }
   if (hasSuper(node)) {
-    const superScope = getSuperScope(node, dummy);
+    const superScope = getSuperScope(node);
     if (superScope) {
       current.addSuperScope(superScope);
     } else {
@@ -121,7 +127,7 @@ function handleTypeDeclaration(node, current) {
 
   let new_mark = false;
   const bodyDeclarations = node.bodyDeclarations;
-  const curr_mark = !(node.hasOwnProperty("mark"));
+  const curr_mark = !node.hasOwnProperty("mark");
   if (curr_mark) {
     node["mark"] = true;
     new_mark = true;
@@ -135,12 +141,12 @@ function handleTypeDeclaration(node, current) {
       case NodeType.FieldDeclaration:
         if (!node.hasOwnProperty("doneChildren")) {
           addField(current, declaration);
-          // current.addChild(methodScope);
         }
         break;
       case NodeType.MethodDeclaration: {
         const name = declaration.name.identifier;
         let isStatic = false;
+        let visibility;
 
         const len = declaration.modifiers.length;
         const modifiers = declaration.modifiers;
@@ -148,21 +154,60 @@ function handleTypeDeclaration(node, current) {
           const modifier = modifiers[i];
           if (modifier.keyword === "static") {
             isStatic = true;
+          } else if (modifier.keyword === "private") {
+            visibility = "private";
+          } else if (modifier.keyword === "public") {
+            visibility = "public";
+          } else if (modifier.keyword === "protected") {
+            visibility = "protected";
           }
         }
-        
-        const methodScope = new MethodScope(name, current, isStatic);
+
+        function getType(type) {
+          // constructors don't have a return type but are methods.
+          if (type === null) {
+            return "*CONSTRUCTOR*"; 
+          }
+
+          if (type.node === "SimpleType") {
+            return type.name.identifier;
+          } else if (type.node === "PrimitiveType") {
+            return type.primitiveTypeCode;
+          }
+        }
+
+        const returnType = getType(declaration.returnType2);
+
+        const paramTypes = [];
+        for (let i = 0; i < declaration.parameters.length; i++) {
+          const param = declaration.parameters[i];
+          const type = getType(param.type);
+          paramTypes.push(type);
+        }
+
+        const methodScope = new MethodScope(
+          name,
+          current,
+          isStatic,
+          returnType,
+          paramTypes,
+          visibility
+        );
         const process_mark = process(declaration, methodScope);
         if (process_mark) {
           new_mark = true;
         }
-        console.log("(pass3::handleTypeDeclaration)adding child to:", current.name, methodScope.name);
+        console.log(
+          "(pass3::handleTypeDeclaration)adding child to:",
+          current.name,
+          methodScope.name
+        );
         if (!node.hasOwnProperty("doneChildren")) {
           current.addChild(methodScope);
         }
         break;
       }
-      case NodeType.TypeDeclaration:{
+      case NodeType.TypeDeclaration: {
         const name = declaration.name.identifier;
         let isStatic = false;
 
@@ -179,14 +224,21 @@ function handleTypeDeclaration(node, current) {
         if (process_mark) {
           new_mark = true;
         }
-        console.log("(pass3::handleTypeDeclaration)adding child to:", current.name, classScope.name);
+        console.log(
+          "(pass3::handleTypeDeclaration)adding child to:",
+          current.name,
+          classScope.name
+        );
         if (!node.hasOwnProperty("doneChildren")) {
           current.addChild(classScope);
         }
         break;
       }
       default:
-        console.log("(pass3::handleTypeDeclaration) Unknown node:", declaration.node);
+        console.log(
+          "(pass3::handleTypeDeclaration) Unknown node:",
+          declaration.node
+        );
     }
   }
   node["doneChildren"] = true;
@@ -195,7 +247,7 @@ function handleTypeDeclaration(node, current) {
 
 function handleMethodDeclaration(node, current) {
   let new_mark = false;
-  const curr_mark = !(node.hasOwnProperty("mark"));
+  const curr_mark = !node.hasOwnProperty("mark");
   if (curr_mark) {
     new_mark = true;
     node["mark"] = true;
@@ -221,12 +273,12 @@ function handleMethodDeclaration(node, current) {
   for (let i = 0; i < len; i++) {
     const statement = statements[i];
     switch (statement.node) {
-      case NodeType.VariableDecarationStatement:
+      case NodeType.VariableDeclarationStatement:
         const variableName = statement.fragments[0].name.identifier;
         current.addVariable(new Variable(variableName));
         break;
       case NodeType.TypeDeclarationStatement:
-        const declaration = statement.declaration
+        const declaration = statement.declaration;
         const className = declaration.name.identifier;
         let isStatic = false;
 
@@ -243,11 +295,18 @@ function handleMethodDeclaration(node, current) {
         if (process_mark) {
           new_mark = true;
         }
-        console.log("(pass3::handleMethodDeclaration)adding child to:", current.name, classScope.name);
+        console.log(
+          "(pass3::handleMethodDeclaration)adding child to:",
+          current.name,
+          classScope.name
+        );
         current.addChild(classScope);
         break;
       default:
-        console.log("(pass3::handleMethodDeclaration) Unknown node:", statement.node);
+        console.log(
+          "(pass3::handleMethodDeclaration) Unknown node:",
+          statement.node
+        );
     }
   }
   return new_mark;

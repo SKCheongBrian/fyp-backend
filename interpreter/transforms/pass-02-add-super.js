@@ -62,10 +62,22 @@ function handleMethodDeclaration(node) {
 
 function isSuperMissing(node) { // TODO check that super first one or there are no supers at all.
   // super is not first one throw exception
+  const statements = node.body.statements;
+  const len = statements.length;
+  let flag = false;
+  if (node.constructor && ((len > 0 && statements[0].node != NodeType.SuperConstructorInvocation) || len == 0)) {
+    flag = true;
+  }
+  for (let i = 1; i < len; i++) {
+    if (statements[i].node == NodeType.SuperConstructorInvocation) {
+      throw new Error("Super invocation has to be the first statement!");
+    }
+  }
   return node.constructor &&
       ((node.body.statements.length > 0 &&
       node.body.statements[0].node != NodeType.SuperConstructorInvocation) ||
       node.body.statements.length == 0)
+  return flag;
 }
 
 function insertSuper(node) {

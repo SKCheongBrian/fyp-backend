@@ -6,7 +6,7 @@ let currentScope;
 let stack;
 
 function addVariableCapture(ast, passedIn) {
-  scopes = passedIn;
+  scopes = passedIn.children;
   process(ast);
   return ast;
 }
@@ -142,6 +142,9 @@ function captureVariable(name) {
   const recoverStack = [];
   let cursor = currentScope;
   let node = stack.pop();
+  // we only want to capture variable if declared somewhere
+  // other than in the same method.
+  let in_first_method = true;
   let found = false;
   while (!found) {
     if (cursor.isClassScope()) {
@@ -156,6 +159,7 @@ function captureVariable(name) {
       if (cursor.variables.hasOwnProperty(name)) {
         found = true;
       } else {
+        in_first_method = false;
         cursor = cursor.parent;
         recoverStack.push(node);
         node = stack.pop();
@@ -164,11 +168,11 @@ function captureVariable(name) {
   }
 
   // node should be where the variable is declared.
-  if (node.node == NodeType.MethodDeclaration) {
+  if (node.node == NodeType.MethodDeclaration && !in_first_method) {
     // should do variable capture
     const declaration = findDeclaration(name, node);
     makeDeclarationFinal(declaration);
-    // capture variable in each class TODO check about the variable recapture 
+    // capture variable in each class
     while (recoverStack.length != 0) {
       const nextNode = recoverStack.pop();
       stack.push(nextNode);

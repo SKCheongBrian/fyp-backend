@@ -86,10 +86,16 @@ class Variable {
 class MethodScope extends Scope {
   name;
   variables;
-  constructor(name, parent, isStatic) {
+  returnType;
+  paramTypes;
+  visibility;
+  constructor(name, parent, isStatic, returnType, paramTypes, visibility) {
     super(parent, isStatic);
     this.name = name;
     this.variables = {};
+    this.returnType = returnType;
+    this.paramTypes = paramTypes;
+    this.visibility = visibility;
   }
 
   getName() {
