@@ -1,4 +1,5 @@
 import NodeType from "../util/ast-types.js";
+import JavaError from "../util/java-error.js";
 import SuperBuilder from "../util/super-builder.js";
 
 function addSuper(AST) {
@@ -70,7 +71,7 @@ function isSuperMissing(node) { // TODO check that super first one or there are 
   }
   for (let i = 1; i < len; i++) {
     if (statements[i].node == NodeType.SuperConstructorInvocation) {
-      throw new Error("Super invocation has to be the first statement!");
+      throw new JavaError("Super invocation has to be the first statement!");
     }
   }
   return node.constructor &&

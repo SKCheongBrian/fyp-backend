@@ -1,4 +1,6 @@
 import express from "express";
+import * as parser from "../interpreter/util/parser.js";
+// import parser from "./lib/parser";
 import { Compiler } from "../interpreter/compiler.js";
 import { Interpreter } from "../interpreter/interpreter.js";
 import generate_pass1 from "../interpreter/transforms/pass-01-generate-simple-AST.js";
@@ -10,7 +12,8 @@ let agenda;
 let labelToIndex;
 
 router.post("/", (req, res) => {
-  const ast = req.body;
+  const program = req.body.program;
+  const ast = parser.parse(program);
 
   const simpleAST = generate_pass1(ast);
 

@@ -1,3 +1,5 @@
+import JavaError from "../util/java-error.js";
+
 class StackFrame {
   functionName;
   frame;
@@ -11,7 +13,7 @@ class StackFrame {
     if (this.frame.hasOwnProperty(symbol)) {
       return this.frame[symbol]
     }
-    throw new Error("Symbol " + symbol + " not found");
+    throw new JavaError("Symbol " + symbol + " not found");
   }
 
   setVariable(symbol, newValue) {

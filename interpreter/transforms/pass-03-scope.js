@@ -21,16 +21,27 @@ function constructScopes(AST) {
   return dummy;
 }
 
+/**
+ * Validates that the given name is a valid Java name.
+ * @param {*} name A string that is the name to be validated.
+ * @returns  True if the name is valid. Otherwise, return false.
+ */
+function isValidJavaVariableName(name) {
+  // Regular expression to validate Java variable names
+  var regex = /^[a-zA-Z_$][a-zA-Z\d_$]*$/;
+  if (!regex.test(name)) {
+    throw Error("The name:" + name + " is not valid.")
+  }
+}
+
 function process(node, current) {
   switch (node.node) {
     case NodeType.CompilationUnit:
       return handleCompilationUnit(node, current);
     case NodeType.TypeDeclaration:
-      handleTypeDeclaration(node, current);
-      break;
+      return handleTypeDeclaration(node, current);
     case NodeType.MethodDeclaration:
-      handleMethodDeclaration(node, current);
-      break;
+      return handleMethodDeclaration(node, current);
     default:
       console.log("(Pass 3::process) This node is unknown:", node.node);
   }
@@ -60,6 +71,7 @@ function handleCompilationUnit(node, current) {
   for (let i = 0; i < len; i++) {
     const type = types[i];
     const name = type.name.identifier;
+    isValidJavaVariableName(name);
     let isStatic = false;
 
     const len = type.modifiers.length;
@@ -94,6 +106,7 @@ function addField(current, node) {
   }
 
   const name = node.fragments[0].name.identifier;
+  isValidJavaVariableName(name);
   const field = new Field(name, isStatic);
   current.addField(field);
 }
@@ -145,6 +158,7 @@ function handleTypeDeclaration(node, current) {
         break;
       case NodeType.MethodDeclaration: {
         const name = declaration.name.identifier;
+        isValidJavaVariableName(name);
         let isStatic = false;
         let visibility;
 
@@ -209,6 +223,7 @@ function handleTypeDeclaration(node, current) {
       }
       case NodeType.TypeDeclaration: {
         const name = declaration.name.identifier;
+        isValidJavaVariableName(name);
         let isStatic = false;
 
         const len = declaration.modifiers.length;
@@ -262,6 +277,7 @@ function handleMethodDeclaration(node, current) {
     for (let i = 0; i < parameterListLength; i++) {
       const parameter = parameterList[i];
       const parameterName = parameter.name.identifier;
+      isValidJavaVariableName(parameterName);
       current.addVariable(new Variable(parameterName));
     }
   }
@@ -275,6 +291,7 @@ function handleMethodDeclaration(node, current) {
     switch (statement.node) {
       case NodeType.VariableDeclarationStatement:
         const variableName = statement.fragments[0].name.identifier;
+        isValidJavaVariableName(variableName);
         current.addVariable(new Variable(variableName));
         break;
       case NodeType.TypeDeclarationStatement:
