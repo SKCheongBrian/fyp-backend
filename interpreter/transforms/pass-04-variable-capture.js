@@ -31,7 +31,7 @@ function process(node) {
     case NodeType.MethodDeclaration:
       handleMethodDeclaration(node);
       break;
-    case NodeType.VariableDecarationStatement:
+    case NodeType.VariableDeclarationStatement:
       handleVariableDeclaration(node);
       break;
     case NodeType.InfixExpression:
